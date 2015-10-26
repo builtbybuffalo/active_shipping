@@ -163,12 +163,12 @@ module ActiveShipping
 
 
     # Get Shipping labels
-    def create_shipment(origin, destination, packages, options = {})
+    def create_shipment(origin, destination, packages, line_items = [], options = {})
       options = @options.update(options)
       packages = Array(packages)
       raise Error, "Multiple packages are not supported yet." if packages.length > 1
 
-      request = build_shipment_request(origin, destination, packages, options)
+      request = build_shipment_request(origin, destination, packages, line_items, options)
       logger.debug(request) if logger
 
       response = commit(save_request(request), (options[:test] || false))
@@ -182,7 +182,7 @@ module ActiveShipping
 
     protected
 
-    def build_shipment_request(origin, destination, packages, options = {})
+    def build_shipment_request(origin, destination, packages, line_items = [], options = {})
       imperial = location_uses_imperial(origin)
 
       xml_builder = Nokogiri::XML::Builder.new do |xml|
@@ -212,6 +212,35 @@ module ActiveShipping
               xml.PaymentType('SENDER')
               xml.Payor do
                 build_shipment_responsible_party_node(xml, options[:shipper] || origin)
+              end
+            end
+
+            xml.CustomsClearanceDetail do
+              xml.DutiesPayment do
+                xml.PaymentType "SENDER"
+                xml.Payor do
+                  build_shipment_responsible_party_node(xml, options[:shipper] || origin)
+                end
+              end
+
+              xml.CustomsValue do
+                xml.Currency packages.first.currency
+                xml.Amount packages.first.value
+              end
+
+              line_items.each do |line_item|
+                xml.Commodities do
+                  xml.NumberOfPieces 1
+                  xml.Description line_item.name
+                  xml.CountryOfManufacture "US"
+                  build_package_weight_node(xml, line_item, imperial)
+                  xml.Quantity line_item.quantity
+                  xml.QuantityUnits "cm"
+                  xml.UnitPrice do
+                    xml.Currency packages.first.currency
+                    xml.Amount line_item.value
+                  end
+                end
               end
             end
 
