@@ -217,9 +217,9 @@ module ActiveShipping
 
             xml.CustomsClearanceDetail do
               xml.DutiesPayment do
-                xml.PaymentType "SENDER"
+                xml.PaymentType "RECIPIENT"
                 xml.Payor do
-                  build_shipment_responsible_party_node(xml, options[:shipper] || origin)
+                  build_shipment_responsible_party_node(xml, destination)
                 end
               end
 
@@ -235,7 +235,7 @@ module ActiveShipping
                   xml.CountryOfManufacture "US"
                   build_package_weight_node(xml, line_item, imperial)
                   xml.Quantity line_item.quantity
-                  xml.QuantityUnits "cm"
+                  xml.QuantityUnits "EA"
                   xml.UnitPrice do
                     xml.Currency packages.first.currency
                     xml.Amount line_item.value
