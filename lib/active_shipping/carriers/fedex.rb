@@ -232,7 +232,7 @@ module ActiveShipping
                 xml.Commodities do
                   xml.NumberOfPieces 1
                   xml.Description line_item.name
-                  xml.CountryOfManufacture "US"
+                  xml.CountryOfManufacture line_item.options[:country_of_manufacture].present? ? line_item.options[:country_of_manufacture] : origin.country.code(:alpha2)
                   build_package_weight_node(xml, line_item, imperial)
                   xml.Quantity line_item.quantity
                   xml.QuantityUnits "EA"
