@@ -246,8 +246,8 @@ module ActiveShipping
 
             xml.LabelSpecification do
               xml.LabelFormatType('COMMON2D')
-              xml.ImageType('PNG')
-              xml.LabelStockType('PAPER_7X4.75')
+              xml.ImageType('ZPLII')
+              xml.LabelStockType('STOCK_4X6')
             end
 
             xml.RateRequestTypes('ACCOUNT')
