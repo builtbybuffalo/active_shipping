@@ -66,7 +66,7 @@ module ActiveShipping
           json.parcels []
 
           json.collectionDetails do
-            build_contact_details json, destination
+            build_contact_details json, origin
           end
 
           json.deliveryDetails do
