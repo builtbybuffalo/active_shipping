@@ -23,12 +23,10 @@ module ActiveShipping
       request = build_shipment_request(origin, destination, packages, line_items, options)
       logger.debug(request) if logger
 
-      # response = perform "/shipping/shipment", {}, request
+      response = perform "/shipping/shipment", {}, request
 
-      # tracking_number = response[:data][:consignmentDetail].first[:parcelNumbers].first
-      shipment_id = 97228457 # response[:data][:shipmentId]
-      tracking_number = "324567321345"
-      response = {}
+      tracking_number = response[:data][:consignmentDetail].first[:parcelNumbers].first
+      shipment_id = response[:data][:shipmentId]
 
       labels = [Label.new(tracking_number, get_label(shipment_id))]
       LabelResponse.new(true, "", response, {labels: labels})
