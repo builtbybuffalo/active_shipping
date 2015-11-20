@@ -45,7 +45,7 @@ module ActiveShipping
     def get_label(shipment_id)
       url = "#{API_URL}/shipping/shipment/#{shipment_id}/label"
 
-      headers = { "Accept" => "text/vnd.citizen-clp" }
+      headers = { "Accept" => "text/html" }
       headers = add_geo_headers(headers)
 
       ssl_get(url, headers)
