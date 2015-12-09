@@ -76,7 +76,7 @@ module ActiveShipping
             end
           end
 
-          json.networkCode "1^12"
+          json.networkCode options[:network_code]
           json.numberOfParcels 1
           json.totalWeight [package.kgs, 1].max
           json.shippingRef1 nil
