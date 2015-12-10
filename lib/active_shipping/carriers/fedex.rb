@@ -233,6 +233,7 @@ module ActiveShipping
                   xml.NumberOfPieces 1
                   xml.Description line_item.name
                   xml.CountryOfManufacture line_item.options[:country_of_manufacture].present? ? line_item.options[:country_of_manufacture] : origin.country.code(:alpha2)
+                  xml.HarmonizedCode line_item.options[:harmonised_number] if line_item.options[:harmonised_number].present?
                   build_package_weight_node(xml, line_item, imperial)
                   xml.Quantity line_item.quantity
                   xml.QuantityUnits "EA"
