@@ -186,9 +186,9 @@ module ActiveShipping
       imperial = location_uses_imperial(origin)
 
       xml_builder = Nokogiri::XML::Builder.new do |xml|
-        xml.ProcessShipmentRequest(xmlns: 'http://fedex.com/ws/ship/v13') do
+        xml.ProcessShipmentRequest(xmlns: 'http://fedex.com/ws/ship/v17') do
           build_request_header(xml)
-          build_version_node(xml, 'ship', 13, 0 ,0)
+          build_version_node(xml, 'ship', 17, 0 ,0)
 
           xml.RequestedShipment do
             xml.ShipTimestamp(ship_timestamp(options[:turn_around_time]).iso8601(0))
@@ -224,8 +224,8 @@ module ActiveShipping
               end
 
               xml.CustomsValue do
-                xml.Currency packages.first.currency
-                xml.Amount packages.first.value
+                xml.Currency "USD"
+                xml.Amount Money.new(packages.first.value * 100, packages.first.currency).exchange_to("USD")
               end
 
               line_items.each do |line_item|
@@ -238,8 +238,8 @@ module ActiveShipping
                   xml.Quantity line_item.quantity
                   xml.QuantityUnits "EA"
                   xml.UnitPrice do
-                    xml.Currency packages.first.currency
-                    xml.Amount line_item.value
+                    xml.Currency "USD"
+                    xml.Amount Money.new(line_item.value * 100, packages.first.currency).exchange_to("USD")
                   end
                 end
               end
