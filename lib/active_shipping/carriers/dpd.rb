@@ -71,8 +71,8 @@ module ActiveShipping
             build_contact_details json, destination
 
             json.notificationDetails do
-              json.email "charlie@builtbybuffalo.com"
-              json.mobile nil
+              json.email packages.first.options[:email]
+              json.mobile destination.phone
             end
           end
 
