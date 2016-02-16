@@ -55,7 +55,7 @@ module ActiveShipping
       Jbuilder.new do |json|
         json.collectionOnDelivery false
         json.invoice nil
-        json.collectionDate DateTime.tomorrow.midday
+        json.collectionDate DateTime.current + 1.hour
         json.consolidate false
 
         json.consignment packages do |package|
@@ -79,7 +79,7 @@ module ActiveShipping
           json.networkCode options[:network_code]
           json.numberOfParcels 1
           json.totalWeight [package.kgs, 1].max
-          json.shippingRef1 nil
+          json.shippingRef1 package.options[:reference_numbers].first[:value]
           json.customsValue nil
           json.parcelDescription nil
         end
@@ -96,7 +96,8 @@ module ActiveShipping
         json.organisation location.company_name
         json.countryCode location.country.code(:alpha2).value
         json.postcode location.postal_code
-        json.street location.address1
+        json.property (location.address2.present? ? location.address1 : location.address2)
+        json.street (location.address2.presence || location.address1)
         json.town location.city
         json.county location.province
       end
