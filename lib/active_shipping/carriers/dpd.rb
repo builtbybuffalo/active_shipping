@@ -96,8 +96,8 @@ module ActiveShipping
         json.organisation location.company_name
         json.countryCode location.country.code(:alpha2).value
         json.postcode location.postal_code
-        json.property (location.address2.present? ? location.address1 : location.address2)
-        json.street (location.address2.presence || location.address1)
+        json.street (location.address2.present? ? location.address1 : location.address2)
+        json.property (location.address2.presence || location.address1)
         json.town location.city
         json.county location.province
       end
