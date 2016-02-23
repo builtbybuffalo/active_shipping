@@ -25,8 +25,12 @@ module ActiveShipping
 
       response = perform "/shipping/shipment", {}, request
 
-      tracking_number = response[:data][:consignmentDetail].first[:parcelNumbers].first
-      shipment_id = response[:data][:shipmentId]
+      begin
+        tracking_number = response[:data][:consignmentDetail].first[:parcelNumbers].first
+        shipment_id = response[:data][:shipmentId]
+      rescue
+        raise ResponseError, response.inspect
+      end
 
       labels = [Label.new(tracking_number, get_label(shipment_id))]
       LabelResponse.new(true, "", response, {labels: labels})
