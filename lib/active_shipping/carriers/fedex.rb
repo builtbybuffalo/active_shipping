@@ -215,6 +215,12 @@ module ActiveShipping
               end
             end
 
+            unless options[:service_type] == "SMART_POST"
+              xml.SpecialServicesRequested do
+                xml.SpecialServiceTypes("ELECTRONIC_TRADE_DOCUMENTS")
+              end
+            end
+
             xml.CustomsClearanceDetail do
               xml.DutiesPayment do
                 xml.PaymentType "RECIPIENT"
@@ -245,10 +251,26 @@ module ActiveShipping
               end
             end
 
+            xml.SmartPostDetail do
+              xml.Indicia(options[:smart_post_indicia] || "PARCEL_SELECT")
+              xml.HubId(options[:preferences][:hub_id])
+            end
+
             xml.LabelSpecification do
               xml.LabelFormatType('COMMON2D')
               xml.ImageType('ZPLII')
               xml.LabelStockType('STOCK_4X6')
+            end
+
+            xml.ShippingDocumentSpecification do
+              xml.ShippingDocumentTypes("COMMERCIAL_INVOICE")
+              xml.CommercialInvoiceDetail do
+                xml.Format do
+                  xml.ImageType("PDF")
+                  xml.StockType("PAPER_LETTER")
+                  xml.ProvideInstructions("true")
+                end
+              end
             end
 
             xml.RateRequestTypes('ACCOUNT')
@@ -412,7 +434,7 @@ module ActiveShipping
     def build_package_weight_node(xml, pkg, imperial)
       xml.Weight do
         xml.Units(imperial ? 'LB' : 'KG')
-        xml.Value([((imperial ? pkg.lbs : pkg.kgs).to_f * 1000).round / 1000.0, 0.1].max)
+        xml.Value([((imperial ? pkg.lbs : pkg.kgs).to_f * 1000).round / 1000.0, 1].max)
       end
     end
 
