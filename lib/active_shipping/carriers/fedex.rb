@@ -173,6 +173,11 @@ module ActiveShipping
 
       response = commit(save_request(request), (options[:test] || false))
       parse_ship_response(response)
+    rescue ActiveShipping::ResponseError => e
+      raise e unless e.message.starts_with?("ERROR - 2502:")
+
+      options[:service_type] = "GROUND_HOME_DELIVERY"
+      create_shipment(origin, destination, packages, line_items, options)
     end
 
     def maximum_address_field_length
@@ -215,7 +220,7 @@ module ActiveShipping
               end
             end
 
-            unless options[:service_type] == "SMART_POST"
+            unless %w(SMART_POST FEDEX_2_DAY FEDEX_GROUND GROUND_HOME_DELIVERY STANDARD_OVERNIGHT).include? options[:service_type]
               xml.SpecialServicesRequested do
                 xml.SpecialServiceTypes("ELECTRONIC_TRADE_DOCUMENTS")
               end
@@ -296,7 +301,7 @@ module ActiveShipping
                 xml.SpecialServicesRequested do
                   xml.SpecialServiceTypes("SIGNATURE_OPTION")
                   xml.SignatureOptionDetail do
-                    xml.OptionType(SIGNATURE_OPTION_CODES[package.options[:signature_option] || :default_for_service])
+                    xml.OptionType(options[:signature_option].presence || SIGNATURE_OPTION_CODES[package.options[:signature_option] || :default_for_service])
                   end
                 end
               end
@@ -320,7 +325,7 @@ module ActiveShipping
         xml.StateOrProvinceCode(location.state)
         xml.PostalCode(location.postal_code)
         xml.CountryCode(location.country_code(:alpha2))
-        xml.Residential('true') if location.residential?
+        xml.Residential('false') if location.residential?
       end
     end
 
@@ -510,7 +515,7 @@ module ActiveShipping
           xml.City(location.city) if location.city
           xml.PostalCode(location.postal_code)
           xml.CountryCode(location.country_code(:alpha2))
-          xml.Residential(true) unless location.commercial?
+          xml.Residential(false) unless location.commercial?
         end
       end
     end
