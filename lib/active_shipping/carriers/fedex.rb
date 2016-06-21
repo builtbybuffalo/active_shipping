@@ -165,6 +165,7 @@ module ActiveShipping
     # Get Shipping labels
     def create_shipment(origin, destination, packages, line_items = [], options = {})
       options = @options.update(options)
+      options[:residential] = residential_location?(destination)
       packages = Array(packages)
       raise Error, "Multiple packages are not supported yet." if packages.length > 1
 
@@ -183,6 +184,31 @@ module ActiveShipping
     def maximum_address_field_length
       # See Fedex Developper Guide
       35
+    end
+
+    def residential_location?(location)
+      xml_builder = Nokogiri::XML::Builder.new do |xml|
+        xml.AddressValidationRequest(xmlns: "http://fedex.com/ws/addressvalidation/v4") do
+          build_request_header(xml)
+          build_version_node(xml, "aval", 4, 0, 0)
+
+          xml.AddressesToValidate do
+            xml.Address do
+              xml.StreetLines(location.address1) if location.address1
+              xml.StreetLines(location.address2) if location.address2
+              xml.City(location.city) if location.city
+              xml.StateOrProvinceCode(location.state)
+              xml.PostalCode(location.postal_code)
+              xml.CountryCode(location.country_code(:alpha2))
+            end
+          end
+        end
+      end
+
+      response = commit(save_request(xml_builder.to_xml), @options[:test])
+      xml = build_document(response, "AddressValidationReply")
+
+      response_success?(xml) && xml.at("Classification").text == "RESIDENTIAL"
     end
 
     protected
@@ -206,7 +232,7 @@ module ActiveShipping
             end
 
             xml.Recipient do
-              build_contact_address_nodes(xml, destination)
+              build_contact_address_nodes(xml, destination, options[:force_residential])
             end
 
             xml.Origin do
@@ -312,7 +338,7 @@ module ActiveShipping
       xml_builder.to_xml
     end
 
-    def build_contact_address_nodes(xml, location)
+    def build_contact_address_nodes(xml, location, force_residential = nil)
       xml.Contact do
         xml.PersonName(location.name)
         xml.CompanyName(location.company)
@@ -325,7 +351,11 @@ module ActiveShipping
         xml.StateOrProvinceCode(location.state)
         xml.PostalCode(location.postal_code)
         xml.CountryCode(location.country_code(:alpha2))
-        xml.Residential('false') if location.residential?
+        if force_residential.nil?
+          xml.Residential('false') if location.residential?
+        else
+          xml.Residential(force_residential.to_s)
+        end
       end
     end
 
