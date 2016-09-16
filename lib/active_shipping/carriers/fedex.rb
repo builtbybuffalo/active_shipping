@@ -186,6 +186,39 @@ module ActiveShipping
       35
     end
 
+    def validate_addresses(locations)
+      xml_builder = Nokogiri::XML::Builder.new do |xml|
+        xml.AddressValidationRequest(xmlns: "http://fedex.com/ws/addressvalidation/v4") do
+          build_request_header(xml)
+          build_version_node(xml, "aval", 4, 0, 0)
+
+          locations.each_with_index do |location, index|
+            xml.AddressesToValidate do
+              xml.ClientReferenceId index
+              xml.Address do
+                xml.StreetLines(location.address1) if location.address1
+                xml.StreetLines(location.address2) if location.address2
+                xml.City(location.city) if location.city
+                xml.StateOrProvinceCode(location.state)
+                xml.PostalCode(location.postal_code)
+                xml.CountryCode(location.country_code(:alpha2))
+                xml.Residential(location.residential?)
+              end
+            end
+          end
+        end
+      end
+
+      response = commit(save_request(xml_builder.to_xml), @options[:test])
+      xml = build_document(response, "AddressValidationReply")
+
+      raise ActiveShipping::Error unless response_success?(xml)
+
+      xml.search("AddressResults").map do |address|
+        Hash.from_xml(address.to_xml).with_indifferent_access
+      end.sort_by { |a| a[:ClientReferenceId].to_i }
+    end
+
     def residential_location?(location)
       xml_builder = Nokogiri::XML::Builder.new do |xml|
         xml.AddressValidationRequest(xmlns: "http://fedex.com/ws/addressvalidation/v4") do
