@@ -323,7 +323,7 @@ module ActiveShipping
             xml.LabelSpecification do
               xml.LabelFormatType('COMMON2D')
               xml.ImageType('ZPLII')
-              xml.LabelStockType('STOCK_4X6')
+              xml.LabelStockType('STOCK_4X6.75_LEADING_DOC_TAB')
             end
 
             xml.ShippingDocumentSpecification do
@@ -360,7 +360,7 @@ module ActiveShipping
                 xml.SpecialServicesRequested do
                   xml.SpecialServiceTypes("SIGNATURE_OPTION")
                   xml.SignatureOptionDetail do
-                    xml.OptionType(options[:signature_option].presence || SIGNATURE_OPTION_CODES[package.options[:signature_option] || :default_for_service])
+                    xml.OptionType(options[:signature_option].presence || options[:preferences][:signature_option].presence || SIGNATURE_OPTION_CODES[package.options[:signature_option] || :default_for_service])
                   end
                 end
               end
