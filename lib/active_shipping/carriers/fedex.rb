@@ -258,7 +258,8 @@ module ActiveShipping
             xml.ShipTimestamp(ship_timestamp(options[:turn_around_time]).iso8601(0))
             xml.DropoffType('REGULAR_PICKUP')
             xml.ServiceType(options[:service_type] || 'FEDEX_GROUND')
-            xml.PackagingType('YOUR_PACKAGING')
+            byebug
+            xml.PackagingType(options[:service_type] == "SMART_POST" ? "YOUR_PACKAGING" : "FEDEX_PAK")
 
             xml.Shipper do
               build_contact_address_nodes(xml, options[:shipper] || origin)
