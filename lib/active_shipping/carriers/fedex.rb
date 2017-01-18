@@ -284,7 +284,7 @@ module ActiveShipping
               end
             end
 
-            unless %w(SMART_POST FEDEX_2_DAY FEDEX_GROUND GROUND_HOME_DELIVERY STANDARD_OVERNIGHT).include? options[:service_type]
+            unless %w(SMART_POST FEDEX_2_DAY FEDEX_GROUND GROUND_HOME_DELIVERY STANDARD_OVERNIGHT FEDEX_EXPRESS_SAVER).include? options[:service_type]
               xml.SpecialServicesRequested do
                 xml.SpecialServiceTypes("ELECTRONIC_TRADE_DOCUMENTS")
               end
@@ -349,7 +349,6 @@ module ActiveShipping
               xml.RequestedPackageLineItems do
                 xml.GroupPackageCount(1)
                 build_package_weight_node(xml, package, imperial)
-                build_package_dimensions_node(xml, package, imperial)
 
                 # Reference Numbers
                 reference_numbers = Array(package.options[:reference_numbers])
