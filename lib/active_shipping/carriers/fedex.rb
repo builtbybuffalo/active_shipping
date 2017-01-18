@@ -165,7 +165,12 @@ module ActiveShipping
     # Get Shipping labels
     def create_shipment(origin, destination, packages, line_items = [], options = {})
       options = @options.update(options)
-      options[:residential] = residential_location?(destination)
+      options[:residential] = destination.residential?
+
+      if options[:service_type] == "FEDEX_GROUND" && options[:residential]
+        options[:service_type] = "GROUND_HOME_DELIVERY"
+      end
+
       packages = Array(packages)
       raise Error, "Multiple packages are not supported yet." if packages.length > 1
 
@@ -258,7 +263,7 @@ module ActiveShipping
             xml.ShipTimestamp(ship_timestamp(options[:turn_around_time]).iso8601(0))
             xml.DropoffType('REGULAR_PICKUP')
             xml.ServiceType(options[:service_type] || 'FEDEX_GROUND')
-            xml.PackagingType(%w(SMART_POST FEDEX_GROUND).include?(options[:service_type]) ? "YOUR_PACKAGING" : "FEDEX_PAK")
+            xml.PackagingType(%w(SMART_POST FEDEX_GROUND GROUND_HOME_DELIVERY).include?(options[:service_type]) ? "YOUR_PACKAGING" : "FEDEX_PAK")
 
             xml.Shipper do
               build_contact_address_nodes(xml, options[:shipper] || origin)
@@ -385,7 +390,7 @@ module ActiveShipping
         xml.PostalCode(location.postal_code)
         xml.CountryCode(location.country_code(:alpha2))
         if force_residential.nil?
-          xml.Residential('false') if location.residential?
+          xml.Residential(location.residential?)
         else
           xml.Residential(force_residential.to_s)
         end
@@ -578,7 +583,7 @@ module ActiveShipping
           xml.City(location.city) if location.city
           xml.PostalCode(location.postal_code)
           xml.CountryCode(location.country_code(:alpha2))
-          xml.Residential(false) unless location.commercial?
+          xml.Residential(location.residential?)
         end
       end
     end
