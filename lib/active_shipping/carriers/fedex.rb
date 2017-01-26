@@ -293,9 +293,6 @@ module ActiveShipping
             xml.CustomsClearanceDetail do
               xml.DutiesPayment do
                 xml.PaymentType "RECIPIENT"
-                xml.Payor do
-                  build_shipment_responsible_party_node(xml, destination)
-                end
               end
 
               xml.CustomsValue do
